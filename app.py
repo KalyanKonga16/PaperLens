@@ -67,7 +67,7 @@ def _load_gemini_key() -> str:
 
 
 # ── Gemini model to use throughout the app ────────────────────────────────────
-GEMINI_MODEL = "gemini/gemini-2.0-flash"
+GEMINI_MODEL = "gemini/gemini-1.5-flash"
 
 
 # ── Security and Database Setup (unchanged) ────────────────────────────────────
