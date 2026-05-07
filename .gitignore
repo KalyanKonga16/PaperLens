@@ -1,0 +1,17 @@
+# Streamlit secrets — contains the Gemini API key; never commit
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.env
+
+# Runtime database (user accounts + activity history)
+user_data.db
+
+# Temporary PageIndex workspace files
+workspace/
+results/
