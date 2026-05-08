@@ -257,9 +257,235 @@ Return ONLY a valid JSON array, no preamble, no markdown fences. Example format:
 """
     response = llm_completion(model=model, prompt=prompt)
 
-    # Parse LLM response robustly
+    # Parse LLM response robustly (Syntax Error Fix)
     try:
-        cleaned = re.sub(r'
-http://googleusercontent.com/immersive_entry_chip/0
+        # Replaced the regex with simple string replace to prevent unterminated string literals
+        cleaned = response.replace("```json", "").replace("```", "").strip()
+        keyphrases_raw = json.loads(cleaned)
+    except json.JSONDecodeError:
+        # Fallback: extract any JSON array from the response
+        match = re.search(r'\[.*\]', response, re.DOTALL)
+        if match:
+            keyphrases_raw = json.loads(match.group())
+        else:
+            raise ValueError(f"LLM returned unparseable output:\n{response}")
 
-Once this redeploys, your rate-limit nightmare will be over! Groq handles thousands of requests per minute for free.
+    # ── Step 4: Build the DataFrame ───────────────────────────────────────
+    lower_text = preprocess_text(original_text)
+    rows = []
+    for item in keyphrases_raw[:num_keyphrases]:
+        phrase     = str(item.get("keyphrase", "")).strip().lower()
+        importance = float(item.get("importance", 0))
+        if not phrase:
+            continue
+        # Count occurrences in the cleaned original text
+        frequency = len(re.findall(re.escape(phrase), lower_text))
+        rows.append({"KeyPhrase": phrase, "Frequency": frequency, "_raw_importance": importance})
+
+    if not rows:
+        raise ValueError("No keyphrases could be extracted from the LLM response.")
+
+    df = pd.DataFrame(rows)
+
+    # ── Step 5: Normalise importance to percentage ────────────────────────
+    max_imp = df["_raw_importance"].max() or 1.0
+    df["Importance (%)"] = (df["_raw_importance"] / max_imp * 100).round(2)
+    df.drop(columns=["_raw_importance"], inplace=True)
+    df.sort_values("Importance (%)", ascending=False, inplace=True)
+    df.reset_index(drop=True, inplace=True)
+
+    return df[["KeyPhrase", "Frequency", "Importance (%)"]]
+
+
+# ── Shared visualisation helper ──
+
+def render_visualisations(df: pd.DataFrame):
+    """Render all four charts for a keyphrases DataFrame."""
+    # Word Cloud
+    st.subheader("Keyphrase Word Cloud")
+    wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(
+        df.set_index('KeyPhrase')['Importance (%)'].to_dict()
+    )
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.imshow(wordcloud, interpolation='bilinear')
+    ax.axis("off")
+    st.pyplot(fig)
+    plt.close(fig)
+
+    # Donut Pie Chart
+    st.subheader("Keyphrase Importance (Donut Chart)")
+    fig1, ax1 = plt.subplots()
+    ax1.pie(df['Importance (%)'], labels=df['KeyPhrase'], autopct='%1.1f%%', startangle=140)
+    ax1.axis('equal')
+    centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+    fig1.gca().add_artist(centre_circle)
+    st.pyplot(fig1)
+    plt.close(fig1)
+
+    # Radial Bar Chart
+    st.subheader("Radial Keyphrase Bar Chart")
+    angles = np.linspace(0, 2 * np.pi, len(df), endpoint=False)
+    fig2, ax2 = plt.subplots(figsize=(8, 8), subplot_kw={'polar': True})
+    ax2.bar(angles, df['Frequency'],
+            color=plt.cm.viridis(df['Importance (%)'] / 100), alpha=0.7)
+    ax2.set_xticks(angles)
+    ax2.set_xticklabels(df['KeyPhrase'], fontsize=8, rotation=45)
+    st.pyplot(fig2)
+    plt.close(fig2)
+
+    # Frequency Histogram
+    st.subheader("Keyphrase Frequency (Histogram)")
+    fig3, ax3 = plt.subplots(figsize=(10, 5))
+    sns.barplot(x=df['KeyPhrase'], y=df['Frequency'], palette='viridis', ax=ax3)
+    ax3.set_xticklabels(ax3.get_xticklabels(), rotation=45, ha="right")
+    ax3.set_title("Keyphrase Frequency")
+    ax3.set_ylabel("Frequency")
+    ax3.set_xlabel("KeyPhrase")
+    st.pyplot(fig3)
+    plt.close(fig3)
+
+
+# ── Main Streamlit application ────────────────────────────────────────────────
+
+def main():
+    st.title("Scientific Keyphrase Extractor")
+    st.caption("Powered by **Groq + PageIndex** — hierarchical tree indexing + LLM-reasoning-based retrieval")
+
+    # Load Groq API key from Streamlit Secrets and inject into the environment
+    groq_key = _load_groq_key()
+    os.environ["GROQ_API_KEY"] = groq_key
+
+    conn = setup_database()
+
+    if 'username' not in st.session_state:
+        st.session_state.username = None
+
+    # ── Login / Register ─────────────────────────────────────
+    if not st.session_state.username:
+        st.subheader("Login / Register")
+        tab1, tab2 = st.tabs(["Login", "Register"])
+
+        with tab1:
+            login_username = st.text_input("Username")
+            login_password = st.text_input("Password", type="password")
+            if st.button("Login"):
+                if verify_user(login_username, login_password, conn):
+                    st.session_state.username = login_username
+                    st.success("Login successful!")
+                else:
+                    st.error("Invalid username or password")
+
+        with tab2:
+            reg_username = st.text_input("New Username")
+            reg_password = st.text_input("New Password", type="password")
+            reg_confirm  = st.text_input("Confirm Password", type="password")
+            if st.button("Register"):
+                if reg_password != reg_confirm:
+                    st.error("Passwords do not match!")
+                elif len(reg_password) < 6:
+                    st.error("Password must be at least 6 characters long!")
+                else:
+                    if register_user(reg_username, reg_password, conn):
+                        st.success("Registration successful! Please login.")
+                    else:
+                        st.error("Username already exists!")
+        return
+
+    # ── Authenticated view ────────────────────────────────────────────────
+    st.write(f"Welcome, **{st.session_state.username}**!")
+    if st.button("Logout"):
+        st.session_state.username = None
+        st.rerun()
+
+    st.write("Extract keyphrases from scientific documents with stunning visuals!")
+
+    # ── Sidebar ────────────────
+    with st.sidebar:
+        st.header("⚙️ About This App")
+        st.info(
+            "**Powered by Groq + PageIndex**\n\n"
+            "1. Your document is parsed into a hierarchical *Table-of-Contents* "
+            "tree where each node carries a section title.\n"
+            "2. Groq then reasons over the full tree to extract and rank the most "
+            "scientifically significant keyphrases — no chunking, no vector DB.\n\n"
+            f"🤖 Model in use: `{GROQ_MODEL}`"
+        )
+        st.markdown("---")
+        st.caption(
+            "The Groq API key is pre-configured by the app owner and is never "
+            "visible to users."
+        )
+
+    # ── File upload and extraction ────────────────────────────────────────
+    uploaded_file = st.file_uploader(
+        "Drag / Drop / Upload Your Scientific Content (PDF / Doc / Docx)",
+        type=["pdf", "docx", "doc"],
+    )
+    num_keyphrases = st.slider(
+        "Select Number of Keyphrases to Extract", min_value=5, max_value=50, value=20, step=5
+    )
+
+    if st.button("Extract Keyphrases"):
+        if not uploaded_file:
+            st.error("Please upload a valid file!")
+            return
+
+        file_type = uploaded_file.name.rsplit('.', 1)[-1].lower()
+        if file_type not in ("pdf", "doc", "docx"):
+            st.error("Unsupported file format!")
+            return
+
+        with st.spinner("Building PageIndex tree and extracting keyphrases with Groq reasoning…"):
+            # Write the uploaded file to a temp path so PageIndex can read it
+            suffix = f".{file_type}"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                tmp.write(uploaded_file.read())
+                tmp_path = tmp.name
+
+            try:
+                # Extract raw text for frequency counting 
+                if file_type == "pdf":
+                    original_text = extract_text_from_pdf(tmp_path)
+                else:
+                    original_text = extract_text_from_docx(tmp_path)
+
+                result_df = extract_keyphrases_pageindex(
+                    file_path      = tmp_path,
+                    file_type      = file_type if file_type == "pdf" else "docx",
+                    model          = GROQ_MODEL,
+                    num_keyphrases = num_keyphrases,
+                    original_text  = original_text,
+                )
+
+            except Exception as exc:
+                st.error(f"Extraction failed: {exc}")
+                return
+            finally:
+                os.unlink(tmp_path)
+
+        st.success("Keyphrase Extraction Successful!")
+
+        # ── Results display ───────────────────────────────────
+        st.subheader("Keyphrases")
+        st.dataframe(result_df)
+
+        # Save activity
+        save_activity(st.session_state.username, uploaded_file.name, result_df, conn)
+
+        render_visualisations(result_df)
+
+    # ── Past Activities ───────────────────────────────────────
+    st.subheader("Your Past Activities")
+    activities = get_user_activities(st.session_state.username, conn)
+
+    if activities:
+        for timestamp, file_name, keyphrases_json in activities:
+            with st.expander(f"{file_name} — {timestamp}"):
+                keyphrases_df = pd.read_json(keyphrases_json)
+                st.dataframe(keyphrases_df)
+                render_visualisations(keyphrases_df)
+    else:
+        st.info("No past activities found.")
+
+if __name__ == "__main__":
+    main()
