@@ -309,7 +309,7 @@ if __name__ == "__main__":
     MD_PATH = os.path.join(os.path.dirname(__file__), '..', 'examples/documents/', f'{MD_NAME}.md')
 
 
-    MODEL="gemini/gemini-1.5-flash"
+    MODEL="gemini/gemini-1.5-flash-8b"
     IF_THINNING=False
     THINNING_THRESHOLD=5000
     SUMMARY_TOKEN_THRESHOLD=200
