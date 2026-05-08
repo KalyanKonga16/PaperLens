@@ -9,6 +9,8 @@ import PyPDF2
 import copy
 import asyncio
 import pymupdf
+import re
+import random
 from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
@@ -28,14 +30,22 @@ def count_tokens(text, model=None):
         return 0
     return litellm.token_counter(model=model, text=text)
 
+def _get_retry_delay(error_msg, attempt):
+    """Extract explicit retry delay from Gemini's 429 message or fallback to exponential backoff."""
+    match = re.search(r'retry in (\d+\.?\d*)s', str(error_msg))
+    if match:
+        return float(match.group(1)) + 1.0 # Add 1s buffer
+    return min(60, 4 * (2 ** attempt))
 
 def llm_completion(model, prompt, chat_history=None, return_finish_reason=False):
     if model:
         model = model.removeprefix("litellm/")
-    max_retries = 10
+    max_retries = 15 # Increased to survive long rate limits
     messages = list(chat_history) + [{"role": "user", "content": prompt}] if chat_history else [{"role": "user", "content": prompt}]
+    
     for i in range(max_retries):
         try:
+            time.sleep(1) # Baseline delay to smooth out rapid requests
             response = litellm.completion(
                 model=model,
                 messages=messages,
@@ -48,9 +58,11 @@ def llm_completion(model, prompt, chat_history=None, return_finish_reason=False)
             return content
         except Exception as e:
             print('************* Retrying *************')
-            logging.error(f"Error: {e}")
+            logging.error(f"Error on attempt {i+1}: {e}")
             if i < max_retries - 1:
-                time.sleep(1)
+                delay = _get_retry_delay(e, i)
+                print(f"Rate limit hit. Sleeping for {delay:.2f} seconds...")
+                time.sleep(delay)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
                 if return_finish_reason:
@@ -58,14 +70,14 @@ def llm_completion(model, prompt, chat_history=None, return_finish_reason=False)
                 return ""
 
 
-
 async def llm_acompletion(model, prompt):
     if model:
         model = model.removeprefix("litellm/")
-    max_retries = 10
+    max_retries = 15
     messages = [{"role": "user", "content": prompt}]
     for i in range(max_retries):
         try:
+            await asyncio.sleep(1) # Baseline delay
             response = await litellm.acompletion(
                 model=model,
                 messages=messages,
@@ -74,9 +86,11 @@ async def llm_acompletion(model, prompt):
             return response.choices[0].message.content
         except Exception as e:
             print('************* Retrying *************')
-            logging.error(f"Error: {e}")
+            logging.error(f"Error on attempt {i+1}: {e}")
             if i < max_retries - 1:
-                await asyncio.sleep(1)
+                delay = _get_retry_delay(e, i)
+                print(f"Rate limit hit. Sleeping for {delay:.2f} seconds...")
+                await asyncio.sleep(delay)
             else:
                 logging.error('Max retries reached for prompt: ' + prompt)
                 return ""
@@ -97,6 +111,8 @@ def get_json_content(response):
          
 
 def extract_json(content):
+    if not content:
+        return {}
     try:
         # First, try to extract JSON enclosed within ```json and ```
         start_idx = content.find("```json")
