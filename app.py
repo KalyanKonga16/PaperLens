@@ -67,8 +67,7 @@ def _load_groq_key() -> str:
 
 
 # ── Groq model to use throughout the app ────────────────────────────────────
-GROQ_MODEL = "groq/llama3-8b-8192"
-
+GROQ_MODEL = "groq/llama-3.1-8b-instant"
 
 # ── Security and Database Setup ────────────────────────────────────
 
