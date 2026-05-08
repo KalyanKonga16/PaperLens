@@ -49,25 +49,15 @@ from pageindex.utils import llm_completion
 # LiteLLM (used internally by PageIndex) picks up GEMINI_API_KEY automatically
 # for any model string prefixed with "gemini/".
 
-def _load_gemini_key() -> str:
-    """
-    Read the Gemini API key from st.secrets (Streamlit Cloud deployment)
-    with a graceful fallback to the local environment variable for local dev.
-    Raises a clear error if neither source provides a key.
-    """
-    key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY", "")
+def _load_groq_key() -> str:
+    key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY", "")
     if not key:
-        st.error(
-            "⚠️ **GEMINI_API_KEY is not configured.**  "
-            "If you are the app owner, please add it under "
-            "*Settings → Secrets* in Streamlit Cloud."
-        )
+        st.error("⚠️ GROQ_API_KEY is missing.")
         st.stop()
     return key
 
-
-# ── Gemini model to use throughout the app ────────────────────────────────────
-GEMINI_MODEL = "gemini/gemini-1.5-flash-8b"
+# Change the model constant
+GEMINI_MODEL = "groq/llama3-8b-8192"
 
 
 # ── Security and Database Setup (unchanged) ────────────────────────────────────
@@ -376,7 +366,7 @@ def main():
     # Load Gemini API key from Streamlit Secrets and inject into the environment
     # so LiteLLM (used by PageIndex) can route gemini/ model strings correctly.
     gemini_key = _load_gemini_key()
-    os.environ["GEMINI_API_KEY"] = gemini_key
+    os.environ["GROQ_API_KEY"] = gemini_key
 
     conn = setup_database()
 
