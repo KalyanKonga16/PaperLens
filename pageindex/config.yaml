@@ -1,6 +1,5 @@
-# config.yaml
-model: "groq/llama3-8b-8192"
-retrieve_model: "groq/llama3-8b-8192"
+model: "groq/llama-3.1-8b-instant"
+retrieve_model: "groq/llama-3.1-8b-instant"
 toc_check_page_num: 20
 max_page_num_each_node: 10
 max_token_num_each_node: 20000
