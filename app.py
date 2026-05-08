@@ -257,7 +257,7 @@ Return ONLY a valid JSON array, no preamble, no markdown fences. Example format:
 """
     response = llm_completion(model=model, prompt=prompt)
 
-    # Parse LLM response robustly (Syntax Error Fix)
+    # Parse LLM response robustly
     try:
         # Replaced the regex with simple string replace to prevent unterminated string literals
         cleaned = response.replace("```json", "").replace("```", "").strip()
@@ -372,6 +372,7 @@ def main():
                 if verify_user(login_username, login_password, conn):
                     st.session_state.username = login_username
                     st.success("Login successful!")
+                    st.rerun()  # Forces immediate UI transition to the authenticated view
                 else:
                     st.error("Invalid username or password")
 
@@ -395,7 +396,7 @@ def main():
     st.write(f"Welcome, **{st.session_state.username}**!")
     if st.button("Logout"):
         st.session_state.username = None
-        st.rerun()
+        st.rerun()  # Forces immediate UI transition to the login view
 
     st.write("Extract keyphrases from scientific documents with stunning visuals!")
 
