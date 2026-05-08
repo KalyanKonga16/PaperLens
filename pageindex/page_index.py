@@ -38,7 +38,7 @@ async def check_title_appearance(item, page_list, start_index=1, model=None):
 
     response = await llm_acompletion(model=model, prompt=prompt)
     response = extract_json(response)
-    if 'answer' in response:
+    if isinstance(response, dict) and 'answer' in response:
         answer = response['answer']
     else:
         answer = 'no'
@@ -68,7 +68,9 @@ async def check_title_appearance_in_start(title, page_text, model=None, logger=N
     response = extract_json(response)
     if logger:
         logger.info(f"Response: {response}")
-    return response.get("start_begin", "no")
+    if isinstance(response, dict):
+        return response.get("start_begin", "no")
+    return "no"
 
 
 async def check_title_appearance_in_start_concurrent(structure, page_list, model=None, logger=None):
@@ -117,9 +119,8 @@ def toc_detector_single_page(content, model=None):
     Please note: abstract,summary, notation list, figure list, table list, etc. are not table of contents."""
 
     response = llm_completion(model=model, prompt=prompt)
-    # print('response', response)
     json_content = extract_json(response)    
-    return json_content['toc_detected']
+    return json_content.get('toc_detected', 'no') if isinstance(json_content, dict) else 'no'
 
 
 def check_if_toc_extraction_is_complete(content, toc, model=None):
@@ -137,7 +138,7 @@ def check_if_toc_extraction_is_complete(content, toc, model=None):
     prompt = prompt + '\n Document:\n' + content + '\n Table of contents:\n' + toc
     response = llm_completion(model=model, prompt=prompt)
     json_content = extract_json(response)
-    return json_content['completed']
+    return json_content.get('completed', 'no') if isinstance(json_content, dict) else 'no'
 
 
 def check_if_toc_transformation_is_complete(content, toc, model=None):
@@ -155,7 +156,7 @@ def check_if_toc_transformation_is_complete(content, toc, model=None):
     prompt = prompt + '\n Raw Table of contents:\n' + content + '\n Cleaned Table of contents:\n' + toc
     response = llm_completion(model=model, prompt=prompt)
     json_content = extract_json(response)
-    return json_content['completed']
+    return json_content.get('completed', 'no') if isinstance(json_content, dict) else 'no'
 
 def extract_toc_content(content, model=None):
     prompt = f"""
@@ -217,7 +218,7 @@ def detect_page_index(toc_content, model=None):
 
     response = llm_completion(model=model, prompt=prompt)
     json_content = extract_json(response)
-    return json_content['page_index_given_in_toc']
+    return json_content.get('page_index_given_in_toc', 'no') if isinstance(json_content, dict) else 'no'
 
 def toc_extractor(page_list, toc_page_list, model):
     def transform_dots_to_colon(text):
@@ -266,7 +267,7 @@ def toc_index_extractor(toc, content, model=None):
     prompt = toc_extractor_prompt + '\nTable of contents:\n' + str(toc) + '\nDocument pages:\n' + content
     response = llm_completion(model=model, prompt=prompt)
     json_content = extract_json(response)    
-    return json_content
+    return json_content if isinstance(json_content, list) else []
 
 
 
@@ -295,9 +296,10 @@ def toc_transformer(toc_content, model=None):
     last_complete, finish_reason = llm_completion(model=model, prompt=prompt, return_finish_reason=True)
     if_complete = check_if_toc_transformation_is_complete(toc_content, last_complete, model)
     if if_complete == "yes" and finish_reason == "finished":
-        last_complete = extract_json(last_complete)
-        cleaned_response=convert_page_to_int(last_complete['table_of_contents'])
-        return cleaned_response
+        last_complete_json = extract_json(last_complete)
+        if isinstance(last_complete_json, dict) and 'table_of_contents' in last_complete_json:
+            return convert_page_to_int(last_complete_json['table_of_contents'])
+        return []
     
     last_complete = get_json_content(last_complete)
     attempt = 0
@@ -330,10 +332,10 @@ def toc_transformer(toc_content, model=None):
         if_complete = check_if_toc_transformation_is_complete(toc_content, last_complete, model)
         
 
-    last_complete = extract_json(last_complete)
-
-    cleaned_response=convert_page_to_int(last_complete['table_of_contents'])
-    return cleaned_response
+    last_complete_json = extract_json(last_complete)
+    if isinstance(last_complete_json, dict) and 'table_of_contents' in last_complete_json:
+        return convert_page_to_int(last_complete_json['table_of_contents'])
+    return []
     
 
 
@@ -485,6 +487,9 @@ def add_page_number_to_toc(part, structure, model=None):
     current_json_raw = llm_completion(model=model, prompt=prompt)
     json_result = extract_json(current_json_raw)
     
+    if not isinstance(json_result, list): 
+        return []
+        
     for item in json_result:
         if 'start' in item:
             del item['start']
@@ -534,7 +539,8 @@ def generate_toc_continue(toc_content, part, model=None):
     prompt = prompt + '\nGiven text\n:' + part + '\nPrevious tree structure\n:' + json.dumps(toc_content, indent=2)
     response, finish_reason = llm_completion(model=model, prompt=prompt, return_finish_reason=True)
     if finish_reason == 'finished':
-        return extract_json(response)
+        res = extract_json(response)
+        return res if isinstance(res, list) else []
     else:
         raise Exception(f'finish reason: {finish_reason}')
     
@@ -569,7 +575,8 @@ def generate_toc_init(part, model=None):
     response, finish_reason = llm_completion(model=model, prompt=prompt, return_finish_reason=True)
 
     if finish_reason == 'finished':
-         return extract_json(response)
+         res = extract_json(response)
+         return res if isinstance(res, list) else []
     else:
         raise Exception(f'finish reason: {finish_reason}')
 
@@ -684,7 +691,7 @@ def process_none_page_numbers(toc_items, page_list, start_index=1, model=None):
             item_copy = copy.deepcopy(item)
             del item_copy['page']
             result = add_page_number_to_toc(page_contents, item_copy, model)
-            if isinstance(result[0]['physical_index'], str) and result[0]['physical_index'].startswith('<physical_index'):
+            if result and isinstance(result[0].get('physical_index'), str) and result[0]['physical_index'].startswith('<physical_index'):
                 item['physical_index'] = int(result[0]['physical_index'].split('_')[-1].rstrip('>').strip())
                 del item['page']
     
@@ -753,7 +760,9 @@ async def single_toc_item_index_fixer(section_title, content, model=None):
     prompt = toc_extractor_prompt + '\nSection Title:\n' + str(section_title) + '\nDocument pages:\n' + content
     response = await llm_acompletion(model=model, prompt=prompt)
     json_content = extract_json(response)    
-    return convert_physical_index_to_int(json_content['physical_index'])
+    if isinstance(json_content, dict):
+        return convert_physical_index_to_int(json_content.get('physical_index'))
+    return None
 
 
 
