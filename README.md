@@ -21,26 +21,33 @@ This tool solves all three problems using a **page-aware retrieval architecture*
 
 ## 🏗️ Architecture
 
-```mermaid
-flowchart TD
-    A[PDF Upload] --> B[Page-Aware Indexing]
-    B --> C[Relevant Context Retrieval]
-    C --> D[Local Candidate Keyword Extraction]
-    D --> E[LLM-Based Keyword Refinement]
-    E --> F[Evidence Scoring]
-    F --> G[Visual Analytics Dashboard]
+The system follows a page-aware retrieval and refinement pipeline designed for accurate scientific keyword extraction.
 
-    B:::process
-    C:::process
-    D:::process
-    E:::ai
-    F:::process
-    G:::output
+| Step | Module | Purpose |
+|------|--------|---------|
+| 1 | 📄 **PDF Upload** | User uploads a scientific research paper in PDF format |
+| 2 | 📑 **Page-Aware Indexing** | The PDF is processed page-by-page to preserve document structure |
+| 3 | 🔍 **Relevant Context Retrieval** | The most important page sections are retrieved for keyword extraction |
+| 4 | 🧠 **Local Candidate Extraction** | YAKE generates initial keyword candidates from the document |
+| 5 | 🤖 **LLM Refinement** | A Hugging Face LLM refines and selects scientifically meaningful keywords |
+| 6 | 📊 **Evidence Scoring** | Keywords are ranked using real document signals such as frequency and relevance |
+| 7 | 📈 **Visual Analytics Dashboard** | Results are displayed using tables, word cloud, topic distribution, evidence radar, and top keyword charts |
 
-    classDef process fill:#e8f1ff,stroke:#2f80ed,stroke-width:1.5px,color:#000;
-    classDef ai fill:#fff3cd,stroke:#f2b705,stroke-width:1.5px,color:#000;
-    classDef output fill:#e8f8ef,stroke:#27ae60,stroke-width:1.5px,color:#000;
-```
+### Pipeline Flow
+
+**PDF Upload**  
+⬇️  
+**Page-Aware Indexing**  
+⬇️  
+**Relevant Context Retrieval**  
+⬇️  
+**Local Candidate Keyword Extraction**  
+⬇️  
+**LLM-Based Keyword Refinement**  
+⬇️  
+**Evidence Scoring**  
+⬇️  
+**Visual Analytics Dashboard**
 
 ## ✨ Key Features
 
