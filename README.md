@@ -1,120 +1,215 @@
-# Scientific Keyphrase Extractor 🔑🔬
+```markdown
+# 🔬 Scientific Keyword Extractor
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://skeforu.streamlit.app/)
+> AI-powered keyword extraction from scientific papers using page-aware retrieval and LLM refinement.
 
-A powerful web application built with Streamlit that uses Natural Language Processing (NLP) to analyze scientific documents (`.pdf` and `.docx`) and extract the most relevant keyphrases. It features a secure user authentication system and presents the results through a suite of stunning, interactive visualizations.
+Upload any research paper (PDF) and instantly extract the most relevant scientific keywords, ranked by real document evidence — not just word frequency.
 
-### ➡️ **[View the Live Demo](https://skeforu.streamlit.app/)**
+---
+
+## 🎯 What Problem Does This Solve?
+
+Extracting meaningful keywords from scientific papers is harder than it looks:
+
+- **Simple word counters** return generic terms like "method", "result", "system"
+- **Basic NLP tools** miss domain-specific phrases like "cold start latency" or "agent coordination overhead"
+- **Naive RAG systems** chunk documents randomly, mixing unrelated sections
+
+This tool solves all three problems using a **page-aware retrieval architecture** that preserves document structure and uses LLM intelligence to identify truly important scientific concepts.
+
+---
+
+## 🏗️ Architecture
+
+```
+┌──────────────┐
+│  PDF Upload  │
+└──────┬───────┘
+       ▼
+┌──────────────────────┐
+│  Page-Aware Indexing  │  ← Splits by page, not random chunks
+└──────┬───────────────┘
+       ▼
+┌──────────────────────┐
+│  Semantic Retrieval   │  ← Finds most relevant sections
+└──────┬───────────────┘
+       ▼
+┌──────────────────────┐
+│  Local Candidate      │  ← YAKE extracts initial keywords
+│  Extraction           │
+└──────┬───────────────┘
+       ▼
+┌──────────────────────┐
+│  LLM Refinement       │  ← Cloud LLM selects best keywords
+│  (with auto fallback) │
+└──────┬───────────────┘
+       ▼
+┌──────────────────────┐
+│  Evidence Scoring     │  ← Real metrics: frequency, spread,
+│                       │     context support
+└──────┬───────────────┘
+       ▼
+┌──────────────────────┐
+│  Visual Analytics     │  ← Word Cloud, Donut, Radar, Bar
+└──────────────────────┘
+```
 
 ---
 
 ## ✨ Key Features
 
-* 🔐 **Secure User Authentication**: A complete registration and login system with password hashing (`PBKDF2HMAC`) and salting to protect user data.
-* 📁 **Multi-Format Document Support**: Seamlessly upload and process both `.pdf` and `.docx` files.
-* 🧠 **Advanced NLP Core**: Utilizes the **TF-IDF** (Term Frequency-Inverse Document Frequency) algorithm to intelligently identify, score, and rank the most significant phrases (from unigrams to trigrams).
-* 📊 **Rich Interactive Visualizations**:
-    * **Word Cloud**: A dynamic visual representation of keyphrase prominence.
-    * **Donut Chart**: Understand the proportional importance of each keyphrase at a glance.
-    * **Radial Bar Chart**: A unique and beautiful chart mapping keyphrase frequency and importance.
-    * **Frequency Histogram**: A classic bar chart for easily comparing term frequencies.
-* 🎛️ **Customizable Analysis**: An intuitive slider allows you to select the exact number of top keyphrases you want to analyze.
-* 📜 **Persistent Activity History**: Your past analyses are saved to your account. You can revisit any previous document's keyphrases and visualizations at any time.
+| Feature | Description |
+|---------|-------------|
+| **Page-Aware Retrieval** | Preserves document structure instead of naive chunking |
+| **LLM Refinement** | Uses cloud LLM to select scientifically meaningful keywords |
+| **Automatic Fallback** | If LLM is unavailable, local extraction still works |
+| **Evidence Scoring** | Keywords ranked by real document metrics, not synthetic values |
+| **Category Analysis** | Keywords automatically grouped into technical domains |
+| **4 Business Visualizations** | Word Cloud, Topic Distribution, Evidence Radar, Top Keywords |
+| **Adjustable Extraction** | Slider to control exact number of keywords (5–50) |
+| **Export** | Download results as CSV or JSON |
 
 ---
 
-## 🚀 Visual Showcase
+## 🆚 How Is This Different From Basic RAG?
 
-Here's a glimpse of the extractor in action, transforming a dense document into insightful visualizations.
-
-
-| Word Cloud | Donut Chart | Radial Chart |
-| :---: | :---: | :---: |
-| *Visualize term importance* | *Compare proportional relevance* | *See frequency in a unique layout* |
-|  |  |  |
+| Aspect | Basic RAG | This Project |
+|--------|-----------|--------------|
+| Chunking | Fixed-size, arbitrary splits | Page-aware, structure-preserving |
+| Retrieval | Embedding similarity only | TF-IDF + semantic + page context |
+| Output | Raw LLM text | Structured JSON with evidence scores |
+| Fallback | Fails if LLM unavailable | Automatic local fallback |
+| Ranking | No ranking or synthetic | Evidence-based (frequency + spread + context) |
+| Visualization | None | 4 business-focused charts |
 
 ---
 
 ## 🛠️ Tech Stack
 
-This project is built with a modern, robust stack:
-
-* **Backend & Frontend**: [Streamlit](https://streamlit.io/)
-* **NLP/Data Manipulation**: [Scikit-learn](https://scikit-learn.org/), [Pandas](https://pandas.pydata.org/), [NumPy](https://numpy.org/)
-* **Data Visualization**: [Matplotlib](https://matplotlib.org/), [Seaborn](https://seaborn.pydata.org/), [WordCloud](https://github.com/amueller/word_cloud)
-* **File Processing**: [PyPDF2](https://pypdf2.readthedocs.io/), [python-docx](https://python-docx.readthedocs.io/)
-* **Database**: `SQLite3` (Python Standard Library)
-* **Security**: `Cryptography` library for hashing and encryption.
-
----
-
-## ⚙️ Getting Started
-
-To run this project on your local machine, follow these simple steps.
-
-### Prerequisites
-
-* Python 3.8+
-* `pip` package manager
-
-### Installation & Setup
-
-1.  **Clone the Repository**
-    ```bash
-    git clone [https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git)
-    cd YOUR_REPOSITORY_NAME
-    ```
-
-2.  **Create and Activate a Virtual Environment**
-    * **On macOS/Linux:**
-        ```bash
-        python3 -m venv venv
-        source venv/bin/activate
-        ```
-    * **On Windows:**
-        ```bash
-        python -m venv venv
-        .\venv\Scripts\activate
-        ```
-
-3.  **Install Dependencies**
-    The `requirements.txt` file contains all necessary packages.
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Run the Streamlit App**
-    Once the dependencies are installed, you can launch the application.
-    ```bash
-    streamlit run app.py
-    ```
-    Your web browser should automatically open to the app's local address (`http://localhost:8501`).
+- **Python 3.11+**
+- **Streamlit** — Interactive web UI
+- **PyMuPDF (fitz)** — PDF text extraction
+- **YAKE** — Local keyword candidate generation
+- **scikit-learn** — TF-IDF vectorization and retrieval
+- **Hugging Face Inference API** — Cloud LLM refinement
+- **Plotly + Matplotlib** — Business visualizations
+- **WordCloud** — Visual keyword representation
 
 ---
 
-## Usage Guide
+## 🚀 Quick Start
 
-1.  **Register/Login**: Create a new account or log in with existing credentials.
-2.  **Upload File**: Drag and drop (or browse for) a `.pdf` or `.docx` file.
-3.  **Set Keyphrase Count**: Use the slider to define how many top keyphrases you'd like to extract.
-4.  **Extract**: Click the "Extract Keyphrases" button to begin the analysis.
-5.  **Explore**: View the results in the data table and the interactive plots that appear below.
-6.  **Review History**: Scroll down to the "Your Past Activities" section to expand and revisit any of your previous analyses.
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/KalyanKonga16/ScientificKeywordExtractor.git
+cd ScientificKeywordExtractor
+```
+
+### 2. Create virtual environment
+
+```bash
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Mac/Linux
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure environment
+
+```bash
+copy .env.example .env
+```
+
+Open `.env` and add your Hugging Face token:
+
+```env
+HF_TOKEN=hf_your_token_here
+```
+
+Get your free token at: https://huggingface.co/settings/tokens
+
+### 5. Run the application
+
+```bash
+streamlit run app.py
+```
+
+Open http://localhost:8501 in your browser.
 
 ---
 
-## 🤝 Contributing
+## 📊 Sample Output
 
-Contributions are welcome! If you have suggestions for improvements or want to add new features, feel free to fork the repository, create a new branch, and submit a pull request.
+### Keyword Table
 
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+| # | Keyword | Category | Evidence Score | Occurrences |
+|---|---------|----------|---------------|-------------|
+| 1 | Agent Coordination Latency | Latency / Performance | 100.0 | 12 |
+| 2 | Cold Start Latency | Latency / Performance | 85.3 | 8 |
+| 3 | Retrieval Latency | Retrieval / Cache | 72.1 | 6 |
+| 4 | Multi-Agent System | AI Agents | 68.4 | 9 |
+
+### Visual Insights
+
+The tool generates 4 evidence-based visualizations:
+
+1. **Word Cloud** — Keyword prominence based on evidence score
+2. **Topic Distribution** — Donut chart showing technical domain breakdown
+3. **Evidence Radar** — Circular view of all keyword strengths
+4. **Top Keywords** — Bar chart of strongest keywords
 
 ---
 
-## 📄 License
+## 📁 Project Structure
 
-This project is distributed under the MIT License. See the `LICENSE` file for more information.
+```
+ScientificKeywordExtractor/
+├── app.py                         # Streamlit UI
+├── requirements.txt               # Dependencies
+├── .env.example                   # Environment template
+├── .gitignore
+├── README.md
+│
+└── src/
+    ├── __init__.py
+    ├── config.py                  # Configuration management
+    ├── cache.py                   # Result caching layer
+    ├── pdf_service.py             # PDF text extraction
+    ├── page_index_service.py      # Page-aware indexing and retrieval
+    ├── candidate_extractor.py     # Local keyword extraction (YAKE)
+    ├── hf_client.py               # Hugging Face LLM integration
+    ├── keyword_pipeline.py        # Main orchestration pipeline
+    └── visuals.py                 # Business visualizations
+```
+
+---
+
+## 🔮 Future Enhancements
+
+- [ ] Multi-document comparative analysis
+- [ ] API endpoint (FastAPI) for programmatic access
+- [ ] OCR support for scanned PDFs
+- [ ] Citation-aware keyword weighting
+- [ ] Domain-specific category models
+
+---
+
+## 📜 License
+
+This project is for educational and portfolio purposes.
+
+---
+
+## 🙏 Acknowledgements
+
+- [PageIndex by VectifyAI](https://github.com/VectifyAI/PageIndex) — Inspiration for page-aware retrieval
+- [Hugging Face](https://huggingface.co) — LLM inference API
+- [YAKE](https://github.com/LIAAD/yake) — Keyword extraction
+- [Streamlit](https://streamlit.io) — Web framework
+```
