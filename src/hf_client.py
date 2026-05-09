@@ -21,17 +21,19 @@ class HFKeywordRefiner:
         context = "\n\n".join(context_blocks)
 
         prompt = f"""
-You are an expert scientific keyword extraction system.
+You are an expert keyword and keyphrase extraction system designed to work on any type of document.
 
 Task:
-Extract up to {max_keywords} high-quality scientific keywords or short keyphrases.
+Extract up to {max_keywords} high-quality, meaningful keywords or short keyphrases from the document.
 
 Rules:
 - Use only information supported by the context.
-- Prefer domain-specific scientific terms.
-- Prefer methods, datasets, metrics, materials, genes, proteins, diseases, molecules, algorithms, architectures, tasks, and applications.
-- Avoid generic words like paper, study, method, result, introduction, analysis.
-- Remove duplicates.
+- Prefer specific, domain-meaningful terms relevant to the document type.
+- Capture concepts, entities, methods, products, processes, technologies, organizations, metrics, places, or any subject the document focuses on.
+- Avoid generic filler words like document, report, study, paper, content, information, section, table.
+- Do not include author names, page numbers, dates, or boilerplate.
+- Remove duplicates and near-duplicates.
+- Prefer multi-word phrases when they carry stronger meaning.
 - Return concise phrases only.
 - Return ONLY valid JSON.
 
@@ -42,7 +44,7 @@ Relevant page-aware context:
 {context}
 
 Return exactly this JSON:
-{{"keywords":["term1","term2","term3"],"pages_used":[1,2],"summary":"one sentence summary"}}
+{{"keywords":["term1","term2","term3"],"pages_used":[1,2],"summary":"one sentence summary of the document"}}
 """
         return prompt.strip()
 
