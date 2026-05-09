@@ -39,7 +39,8 @@ flowchart TD
 
     classDef process fill:#e8f1ff,stroke:#2f80ed,stroke-width:1.5px,color:#000;
     classDef ai fill:#fff3cd,stroke:#f2b705,stroke-width:1.5px,color:#000;
-    classDef output fill:#e8f8ef,stroke:#27ae60,stroke-width:1.5px,color:#000;```
+    classDef output fill:#e8f8ef,stroke:#27ae60,stroke-width:1.5px,color:#000;
+```
 
 ## ✨ Key Features
 
