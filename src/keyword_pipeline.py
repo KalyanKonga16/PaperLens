@@ -1,7 +1,7 @@
 import re
 from .config import settings
 from .cache import JsonCache, make_cache_key
-from .pdf_service import extract_pages_from_pdf
+from .pdf_service import extract_pages_from_file
 from .page_index_service import chunk_pages, SimplePageIndex
 from .candidate_extractor import extract_candidate_keywords, postprocess_keywords
 from .hf_client import HFKeywordRefiner
@@ -167,7 +167,7 @@ def process_pdf(pdf_bytes: bytes, filename: str, use_cache: bool = True, max_key
             cached["cache_hit"] = True
             return cached
 
-    pages = extract_pages_from_pdf(pdf_bytes, max_pages=settings.max_pdf_pages)
+    pages = extract_pages_from_file(pdf_bytes, filename=filename, max_pages=settings.max_pdf_pages)
     if not pages:
         raise ValueError("No readable text found in the PDF. If it is a scanned image PDF, OCR is needed.")
 
