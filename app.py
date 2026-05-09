@@ -1,3 +1,9 @@
+
+---
+
+# 2️⃣ Updated `app.py`
+
+```python
 import json
 import os
 import shutil
@@ -24,7 +30,7 @@ st.set_page_config(
 with st.sidebar:
     st.markdown("## 🔬 PaperLens")
     st.markdown(
-        "AI-powered keyword extraction from scientific papers. "
+        "AI-powered keyword extraction from any PDF. "
         "Upload, analyze, and discover what matters most."
     )
 
@@ -36,7 +42,7 @@ with st.sidebar:
         max_value=50,
         value=20,
         step=1,
-        help="Choose how many keywords you want the system to extract from your paper."
+        help="Choose how many keywords you want the system to extract from your document."
     )
 
     st.markdown("---")
@@ -44,7 +50,7 @@ with st.sidebar:
     st.markdown("#### How It Works")
     st.markdown(
         """
-        1. Upload any scientific PDF
+        1. Upload any PDF document
         2. Choose the number of keywords
         3. Click **Extract Keywords**
         4. View results, charts, and download data
@@ -53,16 +59,17 @@ with st.sidebar:
 
     st.markdown("---")
     st.caption("Powered by Page-Aware Retrieval + LLM Refinement")
+    st.markdown("---")
+    st.markdown("👨‍💻 **Built by:** [Kalyan Konga](https://github.com/KalyanKonga16)")
 
 # --- Main Page ---
 st.title("🔬 PaperLens")
-st.markdown("### Look deeper into research papers")
+st.markdown("### Look deeper into any document")
 st.markdown(
-    "Upload a research paper and instantly extract the most relevant scientific "
-    "keywords with AI-powered analysis."
+    "Upload any PDF and instantly extract the most relevant keywords with AI-powered analysis."
 )
 
-uploaded_file = st.file_uploader("Upload your research paper (PDF)", type=["pdf"])
+uploaded_file = st.file_uploader("Upload your document (PDF)", type=["pdf"])
 
 if uploaded_file is not None:
     st.markdown(f"**Selected:** {uploaded_file.name}")
@@ -73,7 +80,7 @@ if uploaded_file is not None:
         pdf_bytes = uploaded_file.read()
 
         try:
-            with st.spinner(f"Analyzing your paper and extracting {num_keywords} keywords..."):
+            with st.spinner(f"Analyzing your document and extracting {num_keywords} keywords..."):
                 st.session_state.result = process_pdf(
                     pdf_bytes=pdf_bytes,
                     filename=uploaded_file.name,
@@ -105,7 +112,7 @@ if 'result' in st.session_state and st.session_state.result:
 
         # --- Tab 1: Keywords & Summary ---
         with tab1:
-            st.subheader("Paper Summary")
+            st.subheader("Document Summary")
             summary_text = result.get("summary") or "Summary not available for this document."
             st.info(summary_text)
 
@@ -143,7 +150,7 @@ if 'result' in st.session_state and st.session_state.result:
 
             with col1:
                 st.markdown("#### Word Cloud")
-                st.caption("Bigger words appear more prominently in the paper.")
+                st.caption("Bigger words appear more prominently in the document.")
                 fig_wc = create_weighted_word_cloud(keyword_metrics)
                 if fig_wc:
                     st.pyplot(fig_wc, use_container_width=True)
@@ -156,13 +163,13 @@ if 'result' in st.session_state and st.session_state.result:
 
             with col2:
                 st.markdown("#### Topic Distribution")
-                st.caption("What technical areas does this paper focus on?")
+                st.caption("What technical areas does this document focus on?")
                 fig_donut = create_category_donut(keyword_metrics)
                 if fig_donut:
                     st.plotly_chart(fig_donut, use_container_width=True)
 
                 st.markdown("#### Strongest Keywords")
-                st.caption("Top 10 keywords ranked by how strongly the paper supports them.")
+                st.caption("Top 10 keywords ranked by how strongly the document supports them.")
                 fig_top = create_top_keywords_bar(keyword_metrics, top_n=10)
                 if fig_top:
                     st.plotly_chart(fig_top, use_container_width=True)
@@ -174,8 +181,8 @@ if 'result' in st.session_state and st.session_state.result:
             st.markdown(
                 """
                 **PaperLens** is an AI-powered tool that helps researchers, students,
-                and professionals look deeper into research papers and instantly identify
-                the most important scientific keywords.
+                and professionals look deeper into any PDF document and instantly identify
+                the most important keywords.
 
                 #### What Makes PaperLens Different?
 
@@ -188,7 +195,7 @@ if 'result' in st.session_state and st.session_state.result:
 
                 **Stage 2 — AI-Powered Refinement**
                 A large language model analyzes the most relevant sections and selects
-                keywords that are scientifically meaningful — not just frequently repeated.
+                keywords that are meaningful — not just frequently repeated.
 
                 **Stage 3 — Evidence Scoring**
                 Every keyword receives an evidence score based on:
@@ -201,6 +208,7 @@ if 'result' in st.session_state and st.session_state.result:
                 - **Researchers** — Quickly understand the main themes of a paper
                 - **Students** — Identify key concepts for literature reviews
                 - **Professionals** — Analyze technical reports and whitepapers
+                - **Business Analysts** — Extract insights from contracts and reports
                 - **Recruiters / Managers** — Understand technical documents at a glance
 
                 #### Technical Foundation
@@ -209,6 +217,16 @@ if 'result' in st.session_state and st.session_state.result:
                 - **AI Model:** Cloud-hosted LLM with automatic fallback
                 - **Visualizations:** Evidence-based (not synthetic rankings)
                 - **Privacy:** Your PDF is processed locally and never stored permanently
+                """
+            )
+
+            st.markdown("---")
+            st.markdown("#### 👨‍💻 Built By")
+            st.markdown(
+                """
+                **Kalyan Konga**  
+                GitHub: [@KalyanKonga16](https://github.com/KalyanKonga16)  
+                Live Demo: [paperlensforu.streamlit.app](https://paperlensforu.streamlit.app/)
                 """
             )
 
