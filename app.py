@@ -15,17 +15,17 @@ from src.visuals import (
 )
 
 st.set_page_config(
-    page_title="Scientific Keyword Extractor",
+    page_title="PaperLens",
     page_icon="🔬",
     layout="wide"
 )
 
 # --- Sidebar (Clean, User-Focused) ---
 with st.sidebar:
-    st.markdown("## 🔬 Scientific Keyword Extractor")
+    st.markdown("## 🔬 PaperLens")
     st.markdown(
-        "Extract the most important scientific keywords "
-        "from any research paper using AI-powered analysis."
+        "AI-powered keyword extraction from scientific papers. "
+        "Upload, analyze, and discover what matters most."
     )
 
     st.markdown("---")
@@ -55,8 +55,12 @@ with st.sidebar:
     st.caption("Powered by Page-Aware Retrieval + LLM Refinement")
 
 # --- Main Page ---
-st.title("🔬 Scientific Keyword Extractor")
-st.markdown("Upload a research paper and instantly extract the most relevant scientific keywords with AI-powered analysis.")
+st.title("🔬 PaperLens")
+st.markdown("### Look deeper into research papers")
+st.markdown(
+    "Upload a research paper and instantly extract the most relevant scientific "
+    "keywords with AI-powered analysis."
+)
 
 uploaded_file = st.file_uploader("Upload your research paper (PDF)", type=["pdf"])
 
@@ -96,7 +100,7 @@ if 'result' in st.session_state and st.session_state.result:
         tab1, tab2, tab3 = st.tabs([
             "📄 Keywords & Summary",
             "📊 Visual Insights",
-            "ℹ️ About This Tool"
+            "ℹ️ About PaperLens"
         ])
 
         # --- Tab 1: Keywords & Summary ---
@@ -117,7 +121,7 @@ if 'result' in st.session_state and st.session_state.result:
                 st.download_button(
                     label="⬇️ Download Keywords (CSV)",
                     data=df.to_csv(index=True),
-                    file_name=f"{result['file_name'].rsplit('.', 1)[0]}_keywords.csv",
+                    file_name=f"{result['file_name'].rsplit('.', 1)[0]}_paperlens_keywords.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
@@ -125,7 +129,7 @@ if 'result' in st.session_state and st.session_state.result:
                 st.download_button(
                     label="⬇️ Download Full Report (JSON)",
                     data=json.dumps(result, indent=2, ensure_ascii=False),
-                    file_name=f"{result['file_name'].rsplit('.', 1)[0]}_report.json",
+                    file_name=f"{result['file_name'].rsplit('.', 1)[0]}_paperlens_report.json",
                     mime="application/json",
                     use_container_width=True
                 )
@@ -163,18 +167,19 @@ if 'result' in st.session_state and st.session_state.result:
                 if fig_top:
                     st.plotly_chart(fig_top, use_container_width=True)
 
-        # --- Tab 3: About This Tool ---
+        # --- Tab 3: About PaperLens ---
         with tab3:
-            st.subheader("About Scientific Keyword Extractor")
+            st.subheader("About PaperLens")
 
             st.markdown(
                 """
-                This tool helps researchers, students, and professionals quickly
-                identify the most important scientific keywords from any research paper.
+                **PaperLens** is an AI-powered tool that helps researchers, students,
+                and professionals look deeper into research papers and instantly identify
+                the most important scientific keywords.
 
-                #### What Makes This Different?
+                #### What Makes PaperLens Different?
 
-                Unlike simple keyword counters, this tool uses a **3-stage intelligent pipeline**:
+                Unlike simple keyword counters, PaperLens uses a **3-stage intelligent pipeline**:
 
                 **Stage 1 — Page-Aware Indexing**
                 The PDF is split into page-level chunks, preserving the document's
@@ -191,14 +196,14 @@ if 'result' in st.session_state and st.session_state.result:
                 - How many pages mention it
                 - Whether it appears in the most relevant sections
 
-                #### Who Is This For?
+                #### Who Is PaperLens For?
 
                 - **Researchers** — Quickly understand the main themes of a paper
                 - **Students** — Identify key concepts for literature reviews
                 - **Professionals** — Analyze technical reports and whitepapers
                 - **Recruiters / Managers** — Understand technical documents at a glance
 
-                #### Technical Details
+                #### Technical Foundation
 
                 - **Retrieval:** Page-aware semantic indexing
                 - **AI Model:** Cloud-hosted LLM with automatic fallback
@@ -208,4 +213,4 @@ if 'result' in st.session_state and st.session_state.result:
             )
 
             st.markdown("---")
-            st.caption("Built with Streamlit • Python • Hugging Face • Page-Aware Retrieval")
+            st.caption("PaperLens • Built with Streamlit • Python • Hugging Face • Page-Aware Retrieval")
