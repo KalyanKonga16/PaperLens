@@ -1,8 +1,8 @@
 # 🔬 PaperLens
 
-> Look deeper into any PDF — AI-powered keyword extraction using page-aware retrieval and LLM refinement.
+> Look deeper into any Document — AI-powered keyword extraction using page-aware retrieval and LLM refinement.
 
-Upload any PDF (research papers, technical reports, business documents, whitepapers, contracts) and instantly extract the most relevant keywords, ranked by real document evidence — not just word frequency.
+Upload any Document (PDF, DOCX, TXT, MD be it research papers, technical reports, business documents, whitepapers, contracts) and instantly extract the most relevant keywords, ranked by real document evidence — not just word frequency.
 
 🌐 **Live Demo:** [https://paperlensforu.streamlit.app/](https://paperlensforu.streamlit.app/)
 
@@ -58,7 +58,9 @@ PaperLens follows a page-aware retrieval and refinement pipeline designed for ac
 
 | Feature | Description |
 |---------|-------------|
-| **Universal PDF Support** | Works on research papers, business reports, whitepapers, contracts, and more |
+| **Multi-Format Support** | Works with PDF, DOCX, TXT, and Markdown files |
+| **Search & Filter** | Quickly filter the keyword table by typing |
+| **File Size Validation** | Warnings for large files to prevent failures |
 | **Page-Aware Retrieval** | Preserves document structure instead of naive chunking |
 | **LLM Refinement** | Uses cloud LLM to select meaningful keywords |
 | **Automatic Fallback** | If LLM is unavailable, local extraction still works |
