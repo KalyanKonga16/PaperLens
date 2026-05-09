@@ -20,11 +20,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Sidebar (Clean, User-Focused) ---
+# --- Sidebar ---
 with st.sidebar:
     st.markdown("## 🔬 PaperLens")
     st.markdown(
-        "AI-powered keyword extraction from any PDF. "
+        "AI-powered keyword extraction from any document. "
         "Upload, analyze, and discover what matters most."
     )
 
@@ -36,7 +36,19 @@ with st.sidebar:
         max_value=50,
         value=20,
         step=1,
-        help="Choose how many keywords you want the system to extract from your document."
+        help="Choose how many keywords you want the system to extract."
+    )
+
+    st.markdown("---")
+
+    st.markdown("#### Supported Formats")
+    st.markdown(
+        """
+        - 📄 **PDF** (.pdf)
+        - 📝 **Word** (.docx)
+        - 📃 **Text** (.txt)
+        - 📋 **Markdown** (.md)
+        """
     )
 
     st.markdown("---")
@@ -44,12 +56,20 @@ with st.sidebar:
     st.markdown("#### How It Works")
     st.markdown(
         """
-        1. Upload any PDF document
+        1. Upload any supported document
         2. Choose the number of keywords
         3. Click **Extract Keywords**
-        4. View results, charts, and download data
+        4. View results, charts, and download
         """
     )
+
+    st.markdown("---")
+
+    if st.button("🔄 Start Over", use_container_width=True):
+        for key in ['result', 'last_file', 'last_num_keywords']:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
 
     st.markdown("---")
     st.caption("Powered by Page-Aware Retrieval + LLM Refinement")
@@ -60,31 +80,54 @@ with st.sidebar:
 st.title("🔬 PaperLens")
 st.markdown("### Look deeper into any document")
 st.markdown(
-    "Upload any PDF and instantly extract the most relevant keywords with AI-powered analysis."
+    "Upload a document and instantly extract the most relevant keywords with AI-powered analysis."
 )
 
-uploaded_file = st.file_uploader("Upload your document (PDF)", type=["pdf"])
+# File uploader supports multiple formats
+uploaded_file = st.file_uploader(
+    "Upload your document",
+    type=["pdf", "docx", "txt", "md"],
+    help="Maximum recommended file size: 5 MB. Maximum pages processed: 60."
+)
 
 if uploaded_file is not None:
-    st.markdown(f"**Selected:** {uploaded_file.name}")
+    file_size_mb = uploaded_file.size / (1024 * 1024)
 
-    if st.button("🚀 Extract Keywords", type="primary", use_container_width=True):
-        st.session_state['last_file'] = uploaded_file.name
-        st.session_state['last_num_keywords'] = num_keywords
-        pdf_bytes = uploaded_file.read()
+    col_info_1, col_info_2, col_info_3 = st.columns(3)
+    with col_info_1:
+        st.metric("File Name", uploaded_file.name[:25] + "..." if len(uploaded_file.name) > 25 else uploaded_file.name)
+    with col_info_2:
+        st.metric("File Size", f"{file_size_mb:.2f} MB")
+    with col_info_3:
+        file_ext = uploaded_file.name.rsplit('.', 1)[-1].upper() if '.' in uploaded_file.name else "Unknown"
+        st.metric("Format", file_ext)
 
-        try:
-            with st.spinner(f"Analyzing your document and extracting {num_keywords} keywords..."):
-                st.session_state.result = process_pdf(
-                    pdf_bytes=pdf_bytes,
-                    filename=uploaded_file.name,
-                    use_cache=True,
-                    max_keywords=num_keywords
-                )
-            st.success("✅ Analysis complete!")
-        except Exception as e:
-            st.error(f"Could not process this PDF. Please try a different file. Error: {e}")
-            st.session_state.result = None
+    if file_size_mb > 5:
+        st.warning(f"⚠️ Large file detected ({file_size_mb:.1f} MB). Processing may take longer or fail. Consider a smaller file.")
+
+    if file_size_mb > 20:
+        st.error("❌ File too large (>20 MB). Please upload a smaller file.")
+    else:
+        if st.button("🚀 Extract Keywords", type="primary", use_container_width=True):
+            st.session_state['last_file'] = uploaded_file.name
+            st.session_state['last_num_keywords'] = num_keywords
+            file_bytes = uploaded_file.read()
+
+            try:
+                with st.spinner(f"Analyzing your document and extracting {num_keywords} keywords... Please wait."):
+                    st.session_state.result = process_pdf(
+                        pdf_bytes=file_bytes,
+                        filename=uploaded_file.name,
+                        use_cache=True,
+                        max_keywords=num_keywords
+                    )
+                st.success("✅ Analysis complete!")
+            except ValueError as ve:
+                st.error(f"❌ {ve}")
+                st.session_state.result = None
+            except Exception as e:
+                st.error(f"❌ Could not process this document. Error: {e}")
+                st.session_state.result = None
 
 # --- Display Results ---
 if 'result' in st.session_state and st.session_state.result:
@@ -104,15 +147,29 @@ if 'result' in st.session_state and st.session_state.result:
             "ℹ️ About PaperLens"
         ])
 
-        # --- Tab 1: Keywords & Summary ---
+        # --- Tab 1 ---
         with tab1:
             st.subheader("Document Summary")
             summary_text = result.get("summary") or "Summary not available for this document."
             st.info(summary_text)
 
             st.subheader(f"Extracted Keywords ({total_kw})")
+
             df = create_keyword_metrics_table(keyword_metrics)
-            st.dataframe(df, use_container_width=True, height=420)
+
+            # Search/filter feature
+            search_query = st.text_input(
+                "🔍 Search keywords",
+                placeholder="Type to filter keywords (e.g., latency, agent, system)...",
+                help="Filter the keyword table by typing any text"
+            )
+
+            if search_query:
+                filtered_df = df[df.apply(lambda row: row.astype(str).str.contains(search_query, case=False).any(), axis=1)]
+                st.caption(f"Showing {len(filtered_df)} of {len(df)} keywords matching '{search_query}'")
+                st.dataframe(filtered_df, use_container_width=True, height=420)
+            else:
+                st.dataframe(df, use_container_width=True, height=420)
 
             st.markdown("---")
             st.subheader("📥 Download Your Results")
@@ -135,7 +192,7 @@ if 'result' in st.session_state and st.session_state.result:
                     use_container_width=True
                 )
 
-        # --- Tab 2: Visual Insights ---
+        # --- Tab 2 ---
         with tab2:
             st.subheader("Visual Keyword Analysis")
             st.caption(f"Analyzing {total_kw} keywords based on real document evidence.")
@@ -168,24 +225,30 @@ if 'result' in st.session_state and st.session_state.result:
                 if fig_top:
                     st.plotly_chart(fig_top, use_container_width=True)
 
-        # --- Tab 3: About PaperLens ---
+        # --- Tab 3 ---
         with tab3:
             st.subheader("About PaperLens")
 
             st.markdown(
                 """
                 **PaperLens** is an AI-powered tool that helps researchers, students,
-                and professionals look deeper into any PDF document and instantly identify
+                and professionals look deeper into any document and instantly identify
                 the most important keywords.
+
+                #### Supported Formats
+
+                - **PDF** — Research papers, reports, whitepapers
+                - **DOCX** — Microsoft Word documents
+                - **TXT** — Plain text files
+                - **MD** — Markdown notes and documentation
 
                 #### What Makes PaperLens Different?
 
                 Unlike simple keyword counters, PaperLens uses a **3-stage intelligent pipeline**:
 
                 **Stage 1 — Page-Aware Indexing**
-                The PDF is split into page-level chunks, preserving the document's
-                natural structure. This prevents mixing unrelated sections together,
-                which is a common problem in traditional text analysis.
+                The document is split into structured chunks, preserving the natural
+                organization. This prevents mixing unrelated sections together.
 
                 **Stage 2 — AI-Powered Refinement**
                 A large language model analyzes the most relevant sections and selects
@@ -194,23 +257,23 @@ if 'result' in st.session_state and st.session_state.result:
                 **Stage 3 — Evidence Scoring**
                 Every keyword receives an evidence score based on:
                 - How often it appears in the document
-                - How many pages mention it
+                - How many sections mention it
                 - Whether it appears in the most relevant sections
 
                 #### Who Is PaperLens For?
 
-                - **Researchers** — Quickly understand the main themes of a paper
+                - **Researchers** — Quickly understand main themes
                 - **Students** — Identify key concepts for literature reviews
                 - **Professionals** — Analyze technical reports and whitepapers
                 - **Business Analysts** — Extract insights from contracts and reports
-                - **Recruiters / Managers** — Understand technical documents at a glance
+                - **Anyone** — Understand long documents at a glance
 
                 #### Technical Foundation
 
                 - **Retrieval:** Page-aware semantic indexing
                 - **AI Model:** Cloud-hosted LLM with automatic fallback
                 - **Visualizations:** Evidence-based (not synthetic rankings)
-                - **Privacy:** Your PDF is processed locally and never stored permanently
+                - **Privacy:** Your document is processed and never stored permanently
                 """
             )
 
