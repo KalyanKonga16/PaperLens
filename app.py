@@ -83,7 +83,6 @@ st.markdown(
     "Upload a document and instantly extract the most relevant keywords with AI-powered analysis."
 )
 
-# File uploader supports multiple formats
 uploaded_file = st.file_uploader(
     "Upload your document",
     type=["pdf", "docx", "txt", "md"],
@@ -93,17 +92,8 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     file_size_mb = uploaded_file.size / (1024 * 1024)
 
-    col_info_1, col_info_2, col_info_3 = st.columns(3)
-    with col_info_1:
-        st.metric("File Name", uploaded_file.name[:25] + "..." if len(uploaded_file.name) > 25 else uploaded_file.name)
-    with col_info_2:
-        st.metric("File Size", f"{file_size_mb:.2f} MB")
-    with col_info_3:
-        file_ext = uploaded_file.name.rsplit('.', 1)[-1].upper() if '.' in uploaded_file.name else "Unknown"
-        st.metric("Format", file_ext)
-
     if file_size_mb > 5:
-        st.warning(f"⚠️ Large file detected ({file_size_mb:.1f} MB). Processing may take longer or fail. Consider a smaller file.")
+        st.warning(f"⚠️ Large file detected ({file_size_mb:.1f} MB). Processing may take longer.")
 
     if file_size_mb > 20:
         st.error("❌ File too large (>20 MB). Please upload a smaller file.")
@@ -149,15 +139,15 @@ if 'result' in st.session_state and st.session_state.result:
 
         # --- Tab 1 ---
         with tab1:
-            st.subheader("Document Summary")
-            summary_text = result.get("summary") or "Summary not available for this document."
-            st.info(summary_text)
+            summary_text = result.get("summary", "").strip()
+            if summary_text:
+                st.subheader("Document Summary")
+                st.info(summary_text)
 
             st.subheader(f"Extracted Keywords ({total_kw})")
 
             df = create_keyword_metrics_table(keyword_metrics)
 
-            # Search/filter feature
             search_query = st.text_input(
                 "🔍 Search keywords",
                 placeholder="Type to filter keywords (e.g., latency, agent, system)...",
