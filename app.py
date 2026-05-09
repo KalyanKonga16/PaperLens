@@ -1,9 +1,3 @@
-
----
-
-# 2️⃣ Updated `app.py`
-
-```python
 import json
 import os
 import shutil
