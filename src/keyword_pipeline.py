@@ -9,19 +9,48 @@ from .hf_client import HFKeywordRefiner
 
 def categorize_keyword(keyword: str) -> str:
     kw = keyword.lower()
-    if any(x in kw for x in ["latency", "delay", "response time", "throughput", "performance", "tail"]):
-        return "Latency / Performance"
-    if any(x in kw for x in ["agent", "multi-agent", "coordination", "orchestration"]):
-        return "AI Agents"
-    if any(x in kw for x in ["retrieval", "cache", "index", "vector", "memory"]):
-        return "Retrieval / Cache"
-    if any(x in kw for x in ["llm", "prompt", "token", "model", "generation"]):
-        return "LLM / Prompting"
-    if any(x in kw for x in ["network", "server", "api", "request", "system", "infrastructure"]):
-        return "System / Infrastructure"
-    if any(x in kw for x in ["metric", "evaluation", "benchmark", "measurement"]):
-        return "Evaluation Metrics"
-    return "General Domain Terms"
+
+    if any(x in kw for x in [
+        "ai", "ml", "machine learning", "deep learning", "neural", "model", "llm", "prompt", "token", "generation"
+    ]):
+        return "AI / Machine Learning"
+
+    if any(x in kw for x in [
+        "system", "infrastructure", "server", "network", "api", "platform", "service"
+    ]):
+        return "Systems / Infrastructure"
+
+    if any(x in kw for x in [
+        "data", "dataset", "database", "storage", "cache", "index", "vector", "memory", "retrieval"
+    ]):
+        return "Data / Storage"
+
+    if any(x in kw for x in [
+        "performance", "latency", "throughput", "speed", "optimization", "efficiency"
+    ]):
+        return "Performance / Optimization"
+
+    if any(x in kw for x in [
+        "user", "customer", "experience", "interface", "ux", "ui", "design"
+    ]):
+        return "User / Experience"
+
+    if any(x in kw for x in [
+        "business", "market", "revenue", "sales", "growth", "strategy", "industry"
+    ]):
+        return "Business / Strategy"
+
+    if any(x in kw for x in [
+        "security", "privacy", "encryption", "authentication", "compliance", "risk"
+    ]):
+        return "Security / Compliance"
+
+    if any(x in kw for x in [
+        "metric", "evaluation", "benchmark", "measurement", "analysis", "report"
+    ]):
+        return "Metrics / Evaluation"
+
+    return "General Concepts"
 
 
 def count_keyword_occurrences(text: str, keyword: str) -> int:
@@ -90,10 +119,19 @@ def build_keyword_metrics(keywords: list[str], pages, retrieved_chunks: list[dic
 
 def build_retrieval_query(candidates: list[str]) -> str:
     anchor_terms = [
-        "scientific keywords", "technical terms", "domain terms",
-        "methods", "datasets", "metrics", "algorithms", "architectures",
-        "materials", "molecules", "genes", "proteins", "diseases",
-        "applications", "tasks"
+        "important keywords",
+        "main concepts",
+        "key entities",
+        "core ideas",
+        "primary topics",
+        "technical terms",
+        "domain terms",
+        "methods",
+        "products",
+        "organizations",
+        "tools",
+        "metrics",
+        "applications"
     ]
     return " ".join(anchor_terms + candidates[:18])
 
