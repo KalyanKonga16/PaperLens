@@ -169,7 +169,7 @@ def process_pdf(pdf_bytes: bytes, filename: str, use_cache: bool = True, max_key
 
     pages = extract_pages_from_file(pdf_bytes, filename=filename, max_pages=settings.max_pdf_pages)
     if not pages:
-        raise ValueError("No readable text found in the PDF. If it is a scanned image PDF, OCR is needed.")
+        raise ValueError("No readable text found in the document. If it is a scanned image PDF, OCR is needed.")
 
     full_text = "\n".join(p.text for p in pages)
 
@@ -208,11 +208,11 @@ def process_pdf(pdf_bytes: bytes, filename: str, use_cache: bool = True, max_key
         except Exception as e:
             llm_error = str(e)
             keywords = local_rank_keywords(candidates, pages, max_keywords)
-            summary = "Used local fallback because HF inference failed, quota was reached, or model unavailable."
+            summary = ""
             method = "Local YAKE fallback + local page-aware retrieval"
     else:
         keywords = local_rank_keywords(candidates, pages, max_keywords)
-        summary = "Used local extraction because HF_TOKEN was missing or no relevant chunks were retrieved."
+        summary = ""
         method = "Local YAKE fallback + local page-aware retrieval"
 
     keyword_metrics = build_keyword_metrics(keywords=keywords, pages=pages, retrieved_chunks=retrieved_chunks)
