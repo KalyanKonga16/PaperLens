@@ -1,13 +1,12 @@
-```markdown
-# 🔬 Scientific Keyword Extractor
+# 🔬 PaperLens
 
-> AI-powered keyword extraction from scientific papers using page-aware retrieval and LLM refinement.
+> Look deeper into research papers — AI-powered keyword extraction using page-aware retrieval and LLM refinement.
 
 Upload any research paper (PDF) and instantly extract the most relevant scientific keywords, ranked by real document evidence — not just word frequency.
 
 ---
 
-## 🎯 What Problem Does This Solve?
+## 🎯 What Problem Does PaperLens Solve?
 
 Extracting meaningful keywords from scientific papers is harder than it looks:
 
@@ -15,13 +14,13 @@ Extracting meaningful keywords from scientific papers is harder than it looks:
 - **Basic NLP tools** miss domain-specific phrases like "cold start latency" or "agent coordination overhead"
 - **Naive RAG systems** chunk documents randomly, mixing unrelated sections
 
-This tool solves all three problems using a **page-aware retrieval architecture** that preserves document structure and uses LLM intelligence to identify truly important scientific concepts.
+PaperLens solves all three problems using a **page-aware retrieval architecture** that preserves document structure and uses LLM intelligence to identify truly important scientific concepts.
 
 ---
 
 ## 🏗️ Architecture
 
-The system follows a page-aware retrieval and refinement pipeline designed for accurate scientific keyword extraction.
+PaperLens follows a page-aware retrieval and refinement pipeline designed for accurate scientific keyword extraction.
 
 | Step | Module | Purpose |
 |------|--------|---------|
@@ -49,6 +48,8 @@ The system follows a page-aware retrieval and refinement pipeline designed for a
 ⬇️  
 **Visual Analytics Dashboard**
 
+---
+
 ## ✨ Key Features
 
 | Feature | Description |
@@ -64,10 +65,10 @@ The system follows a page-aware retrieval and refinement pipeline designed for a
 
 ---
 
-## 🆚 How Is This Different From Basic RAG?
+## 🆚 How Is PaperLens Different From Basic RAG?
 
-| Aspect | Basic RAG | This Project |
-|--------|-----------|--------------|
+| Aspect | Basic RAG | PaperLens |
+|--------|-----------|-----------|
 | Chunking | Fixed-size, arbitrary splits | Page-aware, structure-preserving |
 | Retrieval | Embedding similarity only | TF-IDF + semantic + page context |
 | Output | Raw LLM text | Structured JSON with evidence scores |
@@ -95,114 +96,5 @@ The system follows a page-aware retrieval and refinement pipeline designed for a
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/KalyanKonga16/ScientificKeywordExtractor.git
-cd ScientificKeywordExtractor
-```
-
-### 2. Create virtual environment
-
-```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Mac/Linux
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure environment
-
-```bash
-copy .env.example .env
-```
-
-Open `.env` and add your Hugging Face token:
-
-```env
-HF_TOKEN=hf_your_token_here
-```
-
-Get your free token at: https://huggingface.co/settings/tokens
-
-### 5. Run the application
-
-```bash
-streamlit run app.py
-```
-
-Open http://localhost:8501 in your browser.
-
----
-
-## 📊 Sample Output
-
-### Keyword Table
-
-| # | Keyword | Category | Evidence Score | Occurrences |
-|---|---------|----------|---------------|-------------|
-| 1 | Agent Coordination Latency | Latency / Performance | 100.0 | 12 |
-| 2 | Cold Start Latency | Latency / Performance | 85.3 | 8 |
-| 3 | Retrieval Latency | Retrieval / Cache | 72.1 | 6 |
-| 4 | Multi-Agent System | AI Agents | 68.4 | 9 |
-
-### Visual Insights
-
-The tool generates 4 evidence-based visualizations:
-
-1. **Word Cloud** — Keyword prominence based on evidence score
-2. **Topic Distribution** — Donut chart showing technical domain breakdown
-3. **Evidence Radar** — Circular view of all keyword strengths
-4. **Top Keywords** — Bar chart of strongest keywords
-
----
-
-## 📁 Project Structure
-
-```
-ScientificKeywordExtractor/
-├── app.py                         # Streamlit UI
-├── requirements.txt               # Dependencies
-├── .env.example                   # Environment template
-├── .gitignore
-├── README.md
-│
-└── src/
-    ├── __init__.py
-    ├── config.py                  # Configuration management
-    ├── cache.py                   # Result caching layer
-    ├── pdf_service.py             # PDF text extraction
-    ├── page_index_service.py      # Page-aware indexing and retrieval
-    ├── candidate_extractor.py     # Local keyword extraction (YAKE)
-    ├── hf_client.py               # Hugging Face LLM integration
-    ├── keyword_pipeline.py        # Main orchestration pipeline
-    └── visuals.py                 # Business visualizations
-```
-
----
-
-## 🔮 Future Enhancements
-
-- [ ] Multi-document comparative analysis
-- [ ] API endpoint (FastAPI) for programmatic access
-- [ ] OCR support for scanned PDFs
-- [ ] Citation-aware keyword weighting
-- [ ] Domain-specific category models
-
----
-
-## 📜 License
-
-This project is for educational and portfolio purposes.
-
----
-
-## 🙏 Acknowledgements
-
-- [PageIndex by VectifyAI](https://github.com/VectifyAI/PageIndex) — Inspiration for page-aware retrieval
-- [Hugging Face](https://huggingface.co) — LLM inference API
-- [YAKE](https://github.com/LIAAD/yake) — Keyword extraction
-- [Streamlit](https://streamlit.io) — Web framework
-```
+git clone https://github.com/KalyanKonga16/PaperLens.git
+cd PaperLens
