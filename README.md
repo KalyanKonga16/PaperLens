@@ -21,40 +21,26 @@ This tool solves all three problems using a **page-aware retrieval architecture*
 
 ## 🏗️ Architecture
 
-```
-┌──────────────┐
-│  PDF Upload  │
-└──────┬───────┘
-       ▼
-┌──────────────────────┐
-│  Page-Aware Indexing  │  ← Splits by page, not random chunks
-└──────┬───────────────┘
-       ▼
-┌──────────────────────┐
-│  Semantic Retrieval   │  ← Finds most relevant sections
-└──────┬───────────────┘
-       ▼
-┌──────────────────────┐
-│  Local Candidate      │  ← YAKE extracts initial keywords
-│  Extraction           │
-└──────┬───────────────┘
-       ▼
-┌──────────────────────┐
-│  LLM Refinement       │  ← Cloud LLM selects best keywords
-│  (with auto fallback) │
-└──────┬───────────────┘
-       ▼
-┌──────────────────────┐
-│  Evidence Scoring     │  ← Real metrics: frequency, spread,
-│                       │     context support
-└──────┬───────────────┘
-       ▼
-┌──────────────────────┐
-│  Visual Analytics     │  ← Word Cloud, Donut, Radar, Bar
-└──────────────────────┘
-```
+```mermaid
+flowchart TD
+    A[PDF Upload] --> B[Page-Aware Indexing]
+    B --> C[Relevant Context Retrieval]
+    C --> D[Local Candidate Keyword Extraction]
+    D --> E[LLM-Based Keyword Refinement]
+    E --> F[Evidence Scoring]
+    F --> G[Visual Analytics Dashboard]
 
----
+    B:::process
+    C:::process
+    D:::process
+    E:::ai
+    F:::process
+    G:::output
+
+    classDef process fill:#e8f1ff,stroke:#2f80ed,stroke-width:1.5px,color:#000;
+    classDef ai fill:#fff3cd,stroke:#f2b705,stroke-width:1.5px,color:#000;
+    classDef output fill:#e8f8ef,stroke:#27ae60,stroke-width:1.5px,color:#000;
+```
 
 ## ✨ Key Features
 
